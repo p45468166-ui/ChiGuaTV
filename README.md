@@ -45,7 +45,7 @@ V1.1
    ```
 2. 获取 TMDb API Key：
    
-   - 访问 TMDb 官网
+   - 访问 TMDb 官网 https://www.themoviedb.org/
    - 注册并登录
    - 进入 API 设置页面
    - 创建 Developer 类型的 API 密钥 配置 Cloudflare Workers
