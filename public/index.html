@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 核心：不发送 Referrer -->
+    <meta name="referrer" content="no-referrer">
+    
+    <!-- 网站描述和关键词 -->
+    <title>吃瓜TV - 私人影视聚合平台 | 打造你的专属Netflix</title>
+    <meta name="description" content="吃瓜TV - 打造你的私人Netflix！聚合30+影视站点，提供智能搜索、实时测速、全网资源聚合。支持电影、电视剧、动漫、综艺等海量内容，极速播放体验。">
+    <meta name="keywords" content="吃瓜TV,影视搜索,电影,电视剧,动漫,综艺,全网聚合,在线播放,影视资源,视频聚合,Netflix,私人影院,影视站点聚合,智能搜索,实时测速">
+    <meta name="author" content="Minerchu">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css"
+        integrity="sha512-GQGU0fMMi238uA+a/bdWJfpUGKUkBdgfFdgBm72SUQ6BeyWjoY/ton0tEjH+OSH9iP4Dfh+7HM0I9f5eR0L/4w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+        integrity="sha512-c42qTSw/wPZ3/5LBzD+Bw5f7bSF2oxou6wEb+I/lqeaKV5FDIfMvvRp772y4jcJLKuGUOpbJMdg/BTl50fJYAw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.1.5/hls.min.js"
+        integrity="sha512-O83G0C/Ypje2c3LTYElrDXQaqtKKxtu8WKlMLEMoIFs9HDeI4rMlpnn9AX5xvR3PgJpwSEBrZpxSzfE1usZqiQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dplayer/1.26.0/DPlayer.min.js"
+        integrity="sha512-1t2U1/0xGhBZAriD+/9llOhjPs5nFBDZ7KbnHB4SGwAUPrzyS+02Kus1cz0exk5eMyXxwfHxj/1JLuie/p6xXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.prod.min.js"
+        integrity="sha512-Wn/yBJ4RQtrSFtq1z61/DM40a7VGN8wnyg8oVhWSZAZchTO9zS/l8Kw6bk32CYjS5VgProK4ujLRMqxEE/bUPQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"
+        integrity="sha512-pax4MlgXjHEPfCwcJLQhigY7+N8rt6bVvWLFyUMuxShv170X53TRzGPmPkZmGBhk+jikR8WBM4yl7A9WMHHqvg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <div id="app">
+
+        <nav class="navbar-custom" :class="{ 'scrolled': scrollY > 50 }">
+            <div class="brand">吃瓜TV <span style="font-size:12px; color:#666; font-weight:normal;">MAX</span></div>
+            <div class="nav-menu" style="display: flex; gap: 20px;">
+                <a href="admin.html" target="_blank" style="color:#888; text-decoration:none; font-size:12px;">Admin</a>
+                <a href="live.html" style="color:#fff; text-decoration:none; font-size:12px;">
+                    <i class="fas fa-broadcast-tower"></i> 直播
+                </a>
+                <a href="#favorites" style="color:#fff; text-decoration:none; font-size:12px;">
+                    <i class="fas fa-heart"></i> 收藏
+                </a>
+                <a href="#history" style="color:#fff; text-decoration:none; font-size:12px;">
+                    <i class="fas fa-history"></i> 历史
+                </a>
+                <a href="#recommend" style="color:#fff; text-decoration:none; font-size:12px;">
+                    <i class="fas fa-star"></i> 推荐
+                </a>
+            </div>
+        </nav>
+
+        <!-- 1. Hero Carousel -->
+        <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="6000">
+            <div class="carousel-inner" v-if="heroList.length > 0">
+                <div class="carousel-item" v-for="(item, index) in heroList" :key="index"
+                    :class="{ active: index === 0 }">
+                    <div class="hero-bg" :style="{ backgroundImage: 'url(' + item.backdrop + ')' }"></div>
+                    <div class="hero-overlay">
+                        <div class="hero-content">
+                            <div class="hero-tag">本周 TOP {{ index + 1 }}</div>
+                            <h1 class="hero-title">{{ item.title }}</h1>
+                            <p class="hero-desc">{{ item.overview }}</p>
+                            <div class="hero-btns">
+                                <button class="btn-play" @click="autoSearch(item.title)"><i class="fas fa-play"></i>
+                                    播放</button>
+                                <button class="btn-info" @click="autoSearch(item.title)"><i
+                                        class="fas fa-info-circle"></i> 更多信息</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Search -->
+        <div class="search-section">
+            <div class="search-box-wrapper">
+                <i class="fas fa-search search-icon" @click="doSearch"></i>
+                <input type="text" v-model="keyword" @keyup.enter="doSearch" class="search-input"
+                    placeholder="输入片名、剧集、演员...">
+            </div>
+        </div>
+
+        <div v-if="!searched">
+            <!-- 3. TMDb Movies -->
+            <div class="section-container animate__animated animate__fadeInUp" v-if="movieList.length > 0">
+                <div class="section-header">
+                    <div class="section-line"></div>
+                    <div class="section-title"><i class="fas fa-film"></i> 全球震感·电影榜</div>
+                    <div class="hot-row-nav">
+                        <button class="nav-btn nav-prev" @click="scrollHotRow('movie', 'prev')"><i class="fas fa-chevron-left"></i></button>
+                        <button class="nav-btn nav-next" @click="scrollHotRow('movie', 'next')"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="hot-row" data-section="movie">
+                    <div class="hot-card" v-for="item in movieList" :key="item.id" @click="autoSearch(item.title)">
+                        <div class="poster-wrap">
+                            <img :src="'https://daili.smdhb.com/t/p/w300' + item.poster_path" loading="lazy">
+                            <div class="rating-badge"><i class="fas fa-star text-warning"></i> {{
+                                item.vote_average.toFixed(1) }}</div>
+                        </div>
+                        <div class="movie-name">{{ item.title }}</div>
+                        <div class="movie-date">{{ item.release_date?.split('-')[0] }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. TMDb TV -->
+            <div class="section-container animate__animated animate__fadeInUp" v-if="tvList.length > 0">
+                <div class="section-header">
+                    <div class="section-line"></div>
+                    <div class="section-title"><i class="fas fa-tv"></i> 全球必追·剧集榜</div>
+                    <div class="hot-row-nav">
+                        <button class="nav-btn nav-prev" @click="scrollHotRow('tv', 'prev')"><i class="fas fa-chevron-left"></i></button>
+                        <button class="nav-btn nav-next" @click="scrollHotRow('tv', 'next')"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="hot-row" data-section="tv">
+                    <div class="hot-card" v-for="item in tvList" :key="item.id" @click="autoSearch(item.name)">
+                        <div class="poster-wrap">
+                            <img :src="'https://daili.smdhb.com/t/p/w300' + item.poster_path" loading="lazy">
+                            <div class="rating-badge"><i class="fas fa-star text-warning"></i> {{
+                                item.vote_average.toFixed(1) }}</div>
+                        </div>
+                        <div class="movie-name">{{ item.name }}</div>
+                        <div class="movie-date">{{ item.first_air_date?.split('-')[0] }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 华语强档 -->
+            <div class="section-container animate__animated animate__fadeInUp" v-if="list_cn.length > 0">
+                <div class="section-header">
+                    <div class="section-line"></div>
+                    <div class="section-title"><i class="fas fa-dragon"></i> 华语强档·国产剧</div>
+                    <div class="hot-row-nav">
+                        <button class="nav-btn nav-prev" @click="scrollHotRow('cn', 'prev')"><i class="fas fa-chevron-left"></i></button>
+                        <button class="nav-btn nav-next" @click="scrollHotRow('cn', 'next')"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="hot-row" data-section="cn">
+                    <div class="hot-card" v-for="item in list_cn" :key="item.id" @click="autoSearch(item.name)">
+                        <div class="poster-wrap">
+                            <img :src="'https://daili.smdhb.com/t/p/w300' + item.poster_path" loading="lazy">
+                            <div class="rating-badge"><i class="fas fa-star text-warning"></i> {{
+                                item.vote_average.toFixed(1) }}</div>
+                        </div>
+                        <div class="movie-name">{{ item.name }}</div>
+                        <div class="movie-date">{{ item.first_air_date?.split('-')[0] }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 日韩潮流 -->
+            <div class="section-container animate__animated animate__fadeInUp" v-if="list_krjp.length > 0">
+                <div class="section-header">
+                    <div class="section-line"></div>
+                    <div class="section-title"><i class="fas fa-mask"></i> 日韩潮流·剧集/动漫</div>
+                    <div class="hot-row-nav">
+                        <button class="nav-btn nav-prev" @click="scrollHotRow('krjp', 'prev')"><i class="fas fa-chevron-left"></i></button>
+                        <button class="nav-btn nav-next" @click="scrollHotRow('krjp', 'next')"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="hot-row" data-section="krjp">
+                    <div class="hot-card" v-for="item in list_krjp" :key="item.id" @click="autoSearch(item.name)">
+                        <div class="poster-wrap">
+                            <img :src="'https://daili.smdhb.com/t/p/w300' + item.poster_path" loading="lazy">
+                            <div class="rating-badge"><i class="fas fa-star text-warning"></i> {{
+                                item.vote_average.toFixed(1) }}</div>
+                        </div>
+                        <div class="movie-name">{{ item.name }}</div>
+                        <div class="movie-date">{{ item.first_air_date?.split('-')[0] }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="search-result-anchor" class="section-container" v-if="searched">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="section-header mb-0">
+                    <div class="section-line"></div>
+                    <div class="section-title">搜索结果</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" @click="clearSearch">清除搜索 X</button>
+            </div>
+
+            <div v-if="loading" class="text-center py-5">
+                <div class="spinner-border text-danger"></div>
+            </div>
+
+            <div class="result-grid" v-if="!loading">
+                <div class="result-card" v-for="group in groupedList" :key="group.name" @click="openDetail(group)">
+                    <div class="poster-wrap">
+                        <img v-if="!isFallback(group.name)" :src="finalPoster(group)" :key="finalPoster(group)"
+                            referrerpolicy="no-referrer" @error="handleImgError(group.name)" loading="lazy">
+                        <div v-else class="poster-fallback">
+                            <i class="fas fa-film mb-2 opacity-50"></i>
+                            <div style="font-size:12px; color:#999">{{ group.name }}</div>
+                        </div>
+                        <div class="rating-badge" style="background:var(--accent); color:#fff; border:none;">{{
+                            group.sources.length }} 源</div>
+                    </div>
+                    <div class="movie-name">{{ group.name }}</div>
+                </div>
+            </div>
+
+            <div v-if="!loading && groupedList.length === 0" class="text-center text-muted py-5">
+                未找到相关内容，请尝试更换关键词
+            </div>
+        </div>
+
+        <!-- 7. 用户收藏 -->
+        <div id="favorites" class="section-container animate__animated animate__fadeInUp">
+            <div class="section-header">
+                <div class="section-line"></div>
+                <div class="section-title"><i class="fas fa-heart"></i> 我的收藏</div>
+            </div>
+            <div v-if="favoriteList.length > 0">
+                <div class="result-grid">
+                    <div class="result-card" v-for="favorite in favoriteList" :key="favorite.id" @click="openDetail(favorite.item)">
+                        <div class="poster-wrap">
+                            <img v-if="!isFallback(favorite.item.name)" :src="finalPoster(favorite.item)" :key="finalPoster(favorite.item)" 
+                                referrerpolicy="no-referrer" @error="handleImgError(favorite.item.name)" loading="lazy">
+                            <div v-else class="poster-fallback">
+                                <i class="fas fa-film mb-2 opacity-50"></i>
+                                <div style="font-size:12px; color:#999">{{ favorite.item.name }}</div>
+                            </div>
+                            <div class="rating-badge" style="background:var(--accent); color:#fff; border:none;">已收藏</div>
+                        </div>
+                        <div class="movie-name">{{ favorite.item.name }}</div>
+                        <div class="movie-actions" style="display: flex; gap: 10px; margin-top: 5px;">
+                            <button class="btn btn-sm btn-danger" @click.stop="removeFavorite(favorite.id)">
+                                <i class="fas fa-trash"></i> 取消收藏
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="text-center text-muted py-5">
+                暂无收藏内容
+            </div>
+        </div>
+
+        <!-- 8. 用户历史记录 -->
+        <div id="history" class="section-container animate__animated animate__fadeInUp">
+            <div class="section-header">
+                <div class="section-line"></div>
+                <div class="section-title"><i class="fas fa-history"></i> 观看历史</div>
+                <button class="btn btn-sm btn-outline-secondary" @click="clearHistory">清除历史 X</button>
+            </div>
+            <div v-if="historyList.length > 0">
+                <div class="result-grid">
+                    <div class="result-card" v-for="history in historyList" :key="history.id" @click="openDetail(history.item)">
+                        <div class="poster-wrap">
+                            <img v-if="!isFallback(history.item.name)" :src="finalPoster(history.item)" :key="finalPoster(history.item)" 
+                                referrerpolicy="no-referrer" @error="handleImgError(history.item.name)" loading="lazy">
+                            <div v-else class="poster-fallback">
+                                <i class="fas fa-film mb-2 opacity-50"></i>
+                                <div style="font-size:12px; color:#999">{{ history.item.name }}</div>
+                            </div>
+                            <div class="rating-badge" style="background:var(--accent); color:#fff; border:none;">
+                                {{ history.progress }}%
+                            </div>
+                        </div>
+                        <div class="movie-name">{{ history.item.name }}</div>
+                        <div class="movie-date" style="font-size:12px; color:#666; margin-top: 5px;">
+                            {{ new Date(history.updatedAt).toLocaleString() }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="text-center text-muted py-5">
+                暂无观看历史
+            </div>
+        </div>
+
+        <!-- 9. 智能推荐 -->
+        <div id="recommend" class="section-container animate__animated animate__fadeInUp">
+            <div class="section-header">
+                <div class="section-line"></div>
+                <div class="section-title"><i class="fas fa-star"></i> 为你推荐</div>
+            </div>
+            <div v-if="recommendList.length > 0">
+                <div class="result-grid">
+                    <div class="result-card" v-for="item in recommendList" :key="item.vod_id" @click="openDetail({ name: item.vod_name, pic: item.vod_pic, sources: [{ ...item, site_key: 'recommend', site_name: '推荐' }] })">
+                        <div class="poster-wrap">
+                            <img v-if="item.vod_pic && !item.vod_pic.includes('mac_default')" :src="item.vod_pic" 
+                                referrerpolicy="no-referrer" @error="handleImgError(item.vod_name)" loading="lazy">
+                            <div v-else class="poster-fallback">
+                                <i class="fas fa-film mb-2 opacity-50"></i>
+                                <div style="font-size:12px; color:#999">{{ item.vod_name }}</div>
+                            </div>
+                            <div class="rating-badge" style="background:var(--accent); color:#fff; border:none;">推荐</div>
+                        </div>
+                        <div class="movie-name">{{ item.vod_name }}</div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="text-center text-muted py-5">
+                暂无推荐内容
+            </div>
+        </div>
+
+        <div class="footer">
+            <div>kk爱吃王哥呆阿龟头 设计编写</div>
+            <div style="font-size:10px; margin-top:5px; opacity:0.5;">Data provided by TMDb & Maccms APIs</div>
+        </div>
+
+        <!-- ★★★ 播放详情页 (影院布局) ★★★ -->
+        <div class="detail-overlay" :class="{ active: showDetail }">
+            <div class="close-btn" @click="closeDetail"><i class="fas fa-times"></i></div>
+
+            <div class="player-layout" v-if="currentGroup">
+
+                <!-- 1. 顶部：标题栏 + 投屏 -->
+                <div class="video-header">
+                    <div>
+                        <h1 class="video-title">{{ currentGroup.name }}</h1>
+                        <div class="video-meta">
+                            正在播放: <span class="text-white fw-bold">{{ currentSource?.site_name }}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-cast" @click="castVideo">
+                            <i class="fas fa-tv"></i> 一键投屏
+                        </button>
+                        <button class="btn-cast" @click="toggleFavorite(currentGroup)">
+                            <i class="fas fa-heart"></i> {{ isFavorite(currentGroup) ? '已收藏' : '收藏' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. 中部：超大播放器 -->
+                <div class="player-box">
+                    <div id="dplayer" style="width: 100%; height: 100%;"></div>
+                </div>
+
+                <!-- 3. 底部：控制面板 -->
+                <div class="controls-area">
+                    <!-- 线路选择 -->
+                    <div class="mb-4">
+                        <div class="panel-title">切换线路 (真实测速)</div>
+                        <div class="source-list">
+                            <div v-for="source in currentGroup.sources" class="source-pill"
+                                :class="{ active: currentSource?.site_key === source.site_key }"
+                                @click="switchSource(source)">
+                                <span>{{ source.site_name }}</span>
+                                <span class="latency-dot" :class="getLatencyClass(source.latency)"></span>
+                                <span style="font-size:10px; opacity:0.6;">{{source.latency}}ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 选集列表 (全宽网格) -->
+                    <div>
+                        <div class="panel-title">选集播放</div>
+                        <div v-if="loadingDetail" class="text-center py-5 text-muted"><i
+                                class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                        <div v-else class="ep-grid">
+                            <div v-for="ep in episodeList" class="ep-btn" :class="{ active: currentUrl === ep.url }"
+                                @click="play(ep.url)">
+                                {{ ep.name }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 检查用户是否已登录
+        function checkLogin() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return token;
+        }
+        
+        // 设置默认的fetch选项，自动添加认证token
+        function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return Promise.reject('未登录');
+            }
+            
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            
+            return fetch(url, {
+                ...options,
+                headers
+            });
+        }
+        
+        // 检查登录状态
+        checkLogin();
+        
+        const { createApp, reactive } = Vue;
+        // 使用你的反代域名
+        const MY_PROXY = "https://daili.smdhb.com";
+        const TMDB_API_KEY = "替换成你自己的KEY"; 
+
+        // API地址修改为你的反代
+        const TMDB_BASE_URL = `${MY_PROXY}/3`;
+        const TMDB_IMG_URL = `${MY_PROXY}/t/p/w500`;
+        const TMDB_BACKDROP_URL = `${MY_PROXY}/t/p/original`;
+
+        let dp = null;
+
+        // 添加触摸滑动支持函数
+        function initHotRowSwipe() {
+            const hotRows = document.querySelectorAll('.hot-row');
+            
+            hotRows.forEach(row => {
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+                let velocity = 0;
+                let lastX = 0;
+                let lastTime = 0;
+                let startY = 0;
+                let isScrolling = false;
+                
+                row.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    startX = e.pageX - row.offsetLeft;
+                    scrollLeft = row.scrollLeft;
+                    lastX = e.pageX;
+                    lastTime = Date.now();
+                    velocity = 0;
+                    row.style.cursor = 'grabbing';
+                    row.style.scrollSnapType = 'none';
+                    row.classList.add('grabbing');
+                });
+                
+                row.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    row.style.cursor = 'grab';
+                    row.style.scrollSnapType = 'x mandatory';
+                    row.classList.remove('grabbing');
+                });
+                
+                row.addEventListener('mouseup', () => {
+                    isDown = false;
+                    row.style.cursor = 'grab';
+                    row.style.scrollSnapType = 'x mandatory';
+                    row.classList.remove('grabbing');
+                    
+                    // 添加惯性滚动
+                    if (Math.abs(velocity) > 0.5) {
+                        const inertiaScroll = () => {
+                            if (Math.abs(velocity) > 0.1) {
+                                row.scrollLeft += velocity;
+                                velocity *= 0.95; // 摩擦力
+                                requestAnimationFrame(inertiaScroll);
+                            }
+                        };
+                        requestAnimationFrame(inertiaScroll);
+                    }
+                });
+                
+                row.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - row.offsetLeft;
+                    const walk = (x - startX) * 2; // 滚动速度倍数
+                    row.scrollLeft = scrollLeft - walk;
+                    
+                    // 计算速度
+                    const currentTime = Date.now();
+                    const timeDiff = currentTime - lastTime;
+                    if (timeDiff > 0) {
+                        velocity = (e.pageX - lastX) / timeDiff * 10;
+                    }
+                    lastX = e.pageX;
+                    lastTime = currentTime;
+                });
+                
+                // 触摸事件支持 - 改进版
+                row.addEventListener('touchstart', (e) => {
+                    isDown = true;
+                    isScrolling = false;
+                    startX = e.touches[0].pageX - row.offsetLeft;
+                    startY = e.touches[0].pageY;
+                    scrollLeft = row.scrollLeft;
+                    lastX = e.touches[0].pageX;
+                    lastTime = Date.now();
+                    velocity = 0;
+                    row.style.scrollSnapType = 'none';
+                });
+                
+                row.addEventListener('touchmove', (e) => {
+                    if (!isDown) return;
+                    
+                    const currentX = e.touches[0].pageX;
+                    const currentY = e.touches[0].pageY;
+                    const deltaX = Math.abs(currentX - startX);
+                    const deltaY = Math.abs(currentY - startY);
+                    
+                    // 如果垂直移动大于水平移动，则允许页面滚动
+                    if (deltaY > deltaX && deltaY > 10) {
+                        isScrolling = true;
+                        return;
+                    }
+                    
+                    if (isScrolling) return;
+                    
+                    e.preventDefault();
+                    const x = currentX - row.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    row.scrollLeft = scrollLeft - walk;
+                    
+                    const currentTime = Date.now();
+                    const timeDiff = currentTime - lastTime;
+                    if (timeDiff > 0) {
+                        velocity = (currentX - lastX) / timeDiff * 10;
+                    }
+                    lastX = currentX;
+                    lastTime = currentTime;
+                });
+                
+                row.addEventListener('touchend', () => {
+                    if (!isDown) return;
+                    isDown = false;
+                    row.style.scrollSnapType = 'x mandatory';
+                    
+                    if (!isScrolling && Math.abs(velocity) > 0.5) {
+                        const inertiaScroll = () => {
+                            if (Math.abs(velocity) > 0.1) {
+                                row.scrollLeft += velocity;
+                                velocity *= 0.95;
+                                requestAnimationFrame(inertiaScroll);
+                            }
+                        };
+                        requestAnimationFrame(inertiaScroll);
+                    }
+                    isScrolling = false;
+                });
+                
+                // 设置初始样式
+                row.style.cursor = 'grab';
+                row.style.scrollSnapType = 'x mandatory';
+                row.style.scrollPadding = '0 20px';
+            });
+        }
+
+        createApp({
+            data() {
+                return {
+                    keyword: '', loading: false, searched: false, rawList: [],
+                    movieList: [], tvList: [], list_cn: [], list_krjp: [], list_hktw: [],
+                    showDetail: false, currentGroup: null, currentSource: null,
+                    episodeList: [], currentUrl: '', loadingDetail: false,
+                    imageMap: {}, fallbackMap: {}, heroList: [], scrollY: 0,
+                    hotList: [],
+                    favoriteList: [],
+                    historyList: [],
+                    recommendList: []
+                }
+            },
+            mounted() {
+                window.addEventListener('scroll', () => { this.scrollY = window.scrollY; });
+                this.fetchHero();
+                this.fetchAllLists();
+                // 获取用户收藏、历史记录和推荐内容
+                this.fetchFavorites();
+                this.fetchHistory();
+                this.fetchRecommendations();
+                
+                // 初始化热榜滑动功能
+                this.$nextTick(() => {
+                    initHotRowSwipe();
+                    this.initHotRowNavStates();
+                });
+            },
+            computed: {
+                groupedList() {
+                    const groups = {};
+                    this.rawList.forEach(item => {
+                        const name = item.vod_name;
+                        if (!groups[name]) groups[name] = { name: name, pic: item.vod_pic, sources: [] };
+                        const isDefault = (url) => !url || url.includes('mac_default') || url.includes('nopic');
+                        if (isDefault(groups[name].pic) && !isDefault(item.vod_pic)) groups[name].pic = item.vod_pic;
+                        if (isDefault(groups[name].pic)) this.handleImgError(name);
+
+                        groups[name].sources.push({
+                            ...item,
+                            latency: item.latency || 999
+                        });
+                    });
+                    return Object.values(groups).sort((a, b) => b.sources.length - a.sources.length);
+                }
+            },
+            methods: {
+                getLatencyClass(ms) { return ms < 500 ? 'dot-green' : (ms < 2000 ? 'dot-yellow' : 'dot-red'); },
+                castVideo() {
+                    const videoEl = document.querySelector('.dplayer-video');
+                    if (!videoEl) return alert('请先播放视频');
+                    if (videoEl.remote && videoEl.remote.state !== 'disconnected') videoEl.remote.prompt().catch(() => { });
+                    else if (videoEl.webkitShowPlaybackTargetPicker) videoEl.webkitShowPlaybackTargetPicker();
+                    else alert('您的浏览器不支持网页直接投屏，请使用浏览器菜单中的投射功能。');
+                },
+
+                fetchAllLists() {
+                    fetch(`${TMDB_BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}&language=zh-CN`)
+                        .then(res => res.json()).then(data => { if (data.results) this.movieList = data.results; });
+                    fetch(`${TMDB_BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}&language=zh-CN`)
+                        .then(res => res.json()).then(data => { if (data.results) this.tvList = data.results; });
+                    fetch(`${TMDB_BASE_URL}/discover/tv?with_origin_country=CN&sort_by=popularity.desc&api_key=${TMDB_API_KEY}&language=zh-CN`)
+                        .then(res => res.json()).then(data => { if (data.results) this.list_cn = data.results; });
+                    fetch(`${TMDB_BASE_URL}/discover/tv?with_origin_country=KR|JP&sort_by=popularity.desc&api_key=${TMDB_API_KEY}&language=zh-CN`)
+                        .then(res => res.json()).then(data => { if (data.results) this.list_krjp = data.results; });
+                    fetch(`${TMDB_BASE_URL}/discover/movie?with_origin_country=HK|TW&sort_by=popularity.desc&api_key=${TMDB_API_KEY}&language=zh-CN`)
+                        .then(res => res.json()).then(data => { if (data.results) this.list_hktw = data.results; });
+                },
+
+                fetchHero() {
+                    fetch(`${TMDB_BASE_URL}/trending/all/week?api_key=${TMDB_API_KEY}&language=zh-CN`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.results) {
+                                this.heroList = data.results.filter(i => i.backdrop_path).slice(0, 5).map(item => ({
+                                    title: item.title || item.name,
+                                    overview: item.overview || '精彩内容不容错过',
+                                    backdrop: `${TMDB_BACKDROP_URL}${item.backdrop_path}`
+                                }));
+                            }
+                        });
+                },
+
+                finalPoster(item, isHot = false) {
+                    const name = isHot ? item.vod_name : item.name;
+                    return this.imageMap[name] || (isHot ? item.vod_pic : item.pic);
+                },
+                isFallback(name) { return this.fallbackMap[name] === true; },
+
+                handleImgError(name) {
+                    if (this.imageMap[name] || this.fallbackMap[name]) return;
+                    this.fallbackMap[name] = true;
+                    let cleanName = name.replace(/第[0-9一二三四五六七八九十]+[季部]/g, '').replace(/Season\s*\d+/ig, '').replace(/S\d{1,2}/ig, '').replace(/(HD|BD|1080P|720P|4K|202\d|TC|TS).*/i, '').trim();
+                    fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(cleanName)}&language=zh-CN`)
+                        .then(res => res.json()).then(data => {
+                            if (data.results && data.results.length > 0) {
+                                const found = data.results.find(i => i.poster_path) || data.results[0];
+                                if (found.poster_path) {
+                                    this.imageMap[name] = `${TMDB_IMG_URL}${found.poster_path}`;
+                                    this.fallbackMap[name] = false;
+                                }
+                            }
+                        }).catch(() => { });
+                },
+
+                autoSearch(name) {
+                    this.keyword = name;
+                    this.doSearch();
+                    setTimeout(() => {
+                        document.getElementById('search-result-anchor').scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                },
+                clearSearch() { this.searched = false; this.keyword = ''; this.rawList = []; },
+                async doSearch() {
+                if (!this.keyword) return;
+                this.loading = true;
+                this.searched = true;
+                this.rawList = [];
+                try {
+                    const res = await fetchWithAuth(`/api/search?wd=${encodeURIComponent(this.keyword)}`);
+                    const data = await res.json();
+                    this.rawList = data.list || [];
+                    this.rawList.forEach(item => {
+                        if (!item.vod_pic || item.vod_pic.includes('mac_default')) this.handleImgError(item.vod_name);
+                    });
+                } catch (e) { }
+                    this.loading = false;
+                },
+                openDetail(group) {
+                    this.currentGroup = group;
+                    this.showDetail = true;
+                    this.currentGroup.sources.forEach(source => {
+                        source.latency = '...';
+                        fetchWithAuth(`/api/check?key=${source.site_key}`)
+                            .then(res => res.json())
+                            .then(data => { source.latency = data.latency; });
+                    });
+                    let best = group.sources[0];
+                    this.switchSource(best);
+                },
+                closeDetail() { this.showDetail = false; if (dp) dp.pause(); },
+                async switchSource(source) {
+                    this.currentSource = source; this.loadingDetail = true; this.episodeList = [];
+                    try {
+                        const res = await fetchWithAuth(`/api/detail?site_key=${source.site_key}&id=${source.vod_id}`);
+                        const data = await res.json();
+                        if (data.list && data.list.length > 0) this.parseEpisodes(data.list[0].vod_play_url);
+                    } catch (e) { }
+                    this.loadingDetail = false;
+                },
+                parseEpisodes(urlStr) {
+                    let playSource = urlStr;
+                    if (urlStr.includes('$$$')) {
+                        const sets = urlStr.split('$$$');
+                        playSource = sets.find(s => s.toLowerCase().includes('m3u8')) || sets[0];
+                    }
+                    this.episodeList = playSource.split('#').map(ep => {
+                        const p = ep.split('$');
+                        return { name: p.length > 1 ? p[0] : '正片', url: p.length > 1 ? p[1] : p[0] };
+                    });
+                    if (this.episodeList.length > 0) this.play(this.episodeList[0].url);
+                },
+                play(url) {
+                    this.currentUrl = url;
+                    if (!dp) {
+                        dp = new DPlayer({
+                            container: document.getElementById('dplayer'),
+                            theme: '#e50914', 
+                            video: { url: url, type: 'hls' }
+                        });
+                        // 添加播放进度更新事件
+                        dp.on('timeupdate', () => {
+                            this.updatePlayProgress();
+                        });
+                    } else {
+                        dp.switchVideo({ url: url, type: 'hls' });
+                    }
+                    dp.play();
+                    // 添加到历史记录
+                    this.addToHistory(this.currentGroup, 0);
+                },
+                
+                // 热榜左右滚动功能
+                scrollHotRow(section, direction) {
+                    const hotRow = document.querySelector(`[data-section="${section}"]`);
+                    if (!hotRow) return;
+                    
+                    const cardWidth = 164; // 150px width + 14px gap
+                    const scrollAmount = cardWidth * 3; // 一次滚动3个项目
+                    
+                    if (direction === 'prev') {
+                        hotRow.scrollBy({
+                            left: -scrollAmount,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        hotRow.scrollBy({
+                            left: scrollAmount,
+                            behavior: 'smooth'
+                        });
+                    }
+                    
+                    // 更新导航按钮状态
+                    this.updateNavButtons(hotRow, section);
+                },
+                
+                updateNavButtons(hotRow, section) {
+                    const prevBtn = document.querySelector(`[data-section="${section}"]`).parentElement.querySelector('.nav-prev');
+                    const nextBtn = document.querySelector(`[data-section="${section}"]`).parentElement.querySelector('.nav-next');
+                    
+                    if (prevBtn && nextBtn) {
+                        // 检查是否可以向前滚动
+                        prevBtn.disabled = hotRow.scrollLeft <= 0;
+                        
+                        // 检查是否可以向后滚动
+                        const maxScroll = hotRow.scrollWidth - hotRow.clientWidth;
+                        nextBtn.disabled = hotRow.scrollLeft >= maxScroll - 10; // 10px 容差
+                    }
+                },
+                
+                // 初始化所有热榜导航按钮状态
+                initHotRowNavStates() {
+                    const sections = ['movie', 'tv', 'cn', 'krjp'];
+                    sections.forEach(section => {
+                        const hotRow = document.querySelector(`[data-section="${section}"]`);
+                        if (hotRow) {
+                            // 监听滚动事件更新按钮状态
+                            hotRow.addEventListener('scroll', () => {
+                                this.updateNavButtons(hotRow, section);
+                            });
+                            
+                            // 初始状态
+                            this.updateNavButtons(hotRow, section);
+                            
+                            // 窗口大小改变时重新计算
+                            window.addEventListener('resize', () => {
+                                this.updateNavButtons(hotRow, section);
+                            });
+                        }
+                    });
+                },
+                
+                // 用户收藏功能
+                fetchFavorites() {
+                    fetchWithAuth('/api/favorites')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.favoriteList = data.favorites;
+                            }
+                        })
+                        .catch(err => console.error('获取收藏列表失败:', err));
+                },
+                
+                toggleFavorite(group) {
+                    if (this.isFavorite(group)) {
+                        // 取消收藏
+                        const favorite = this.favoriteList.find(fav => fav.item.name === group.name);
+                        if (favorite) {
+                            this.removeFavorite(favorite.id);
+                        }
+                    } else {
+                        // 添加收藏
+                        fetchWithAuth('/api/favorites', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ item: group })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.favoriteList.push(data.favorite);
+                            }
+                        })
+                        .catch(err => console.error('添加收藏失败:', err));
+                    }
+                },
+                
+                isFavorite(group) {
+                    return this.favoriteList.some(fav => fav.item.name === group.name);
+                },
+                
+                removeFavorite(id) {
+                    fetchWithAuth(`/api/favorites/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.favoriteList = this.favoriteList.filter(fav => fav.id !== id);
+                        }
+                    })
+                    .catch(err => console.error('取消收藏失败:', err));
+                },
+                
+                // 用户历史记录功能
+                fetchHistory() {
+                    fetchWithAuth('/api/history')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.historyList = data.history;
+                            }
+                        })
+                        .catch(err => console.error('获取历史记录失败:', err));
+                },
+                
+                addToHistory(item, progress = 0) {
+                    fetchWithAuth('/api/history', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ item, progress })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.fetchHistory(); // 更新历史记录列表
+                        }
+                    })
+                    .catch(err => console.error('添加历史记录失败:', err));
+                },
+                
+                clearHistory() {
+                    if (confirm('确定要清除所有历史记录吗？')) {
+                        fetchWithAuth('/api/history', {
+                            method: 'DELETE'
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.historyList = [];
+                            }
+                        })
+                        .catch(err => console.error('清除历史记录失败:', err));
+                    }
+                },
+                
+                // 影视推荐功能
+                fetchRecommendations() {
+                    fetchWithAuth('/api/recommend')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.recommendList = data.list;
+                            }
+                        })
+                        .catch(err => console.error('获取推荐内容失败:', err));
+                },
+                
+                // 更新历史记录当播放视频时
+                updatePlayProgress() {
+                    if (dp && this.currentGroup) {
+                        const progress = Math.floor(dp.video.currentTime / dp.video.duration * 100);
+                        this.addToHistory(this.currentGroup, progress);
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>

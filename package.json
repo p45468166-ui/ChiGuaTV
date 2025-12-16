@@ -1,0 +1,19 @@
+{
+  "name": "chiguatv-worker",
+  "version": "1.0.0",
+  "description": "吃瓜TV Cloudflare Workers 版",
+  "main": "worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "echo 'No build step needed for Workers'"
+  },
+  "dependencies": {
+    "itty-router": "^4.0.23"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240208.0",
+    "wrangler": "^3.32.0"
+  },
+  "type": "module"
+}
